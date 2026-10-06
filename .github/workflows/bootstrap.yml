@@ -30,8 +30,13 @@ jobs:
           cat .bootstrap/chunk_*.txt > /tmp/returniq_payload.b64
           base64 -d /tmp/returniq_payload.b64 > /tmp/returniq_payload.tar.xz
           tar -xJf /tmp/returniq_payload.tar.xz -C .
+
+          # The Actions token cannot itself write workflow files. Keep this
+          # bootstrap workflow for this commit and add the real workflows
+          # separately through the authenticated GitHub connection.
+          rm -f .github/workflows/ci.yml
+          rm -f .github/workflows/dependency-update.yml
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap.yml
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
