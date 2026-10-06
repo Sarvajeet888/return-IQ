@@ -1,0 +1,62 @@
+# Promtail configuration — ships Docker container logs to Loki (Phase 8.7)
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+
+  # ReturnIQ backend — JSON structured logs
+  - job_name: returniq_containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+
+    relabel_configs:
+      # Use container name as the "container" label
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      # Add compose service name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+      # Only scrape returniq containers
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        regex: 'returniq.*'
+        action: keep
+
+    pipeline_stages:
+      # Parse the JSON logs emitted by logging_config.py
+      - json:
+          expressions:
+            level: level
+            logger: logger
+            message: message
+            request_id: request_id
+            status_code: status_code
+            latency_ms: latency_ms
+            path: path
+
+      # Promote key fields to labels for fast filtering in Grafana
+      - labels:
+          level:
+          logger:
+
+      # Use the app's own timestamp rather than ingestion time
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+          fallback_formats:
+            - "2006-01-02T15:04:05"
+
+      # Drop noisy health check logs
+      - match:
+          selector: '{service="backend"}'
+          stages:
+            - drop:
+                expression: '.*"path":"/health".*'

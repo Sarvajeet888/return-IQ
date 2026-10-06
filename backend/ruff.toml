@@ -1,0 +1,42 @@
+# Ruff configuration for ReturnIQ (Phase 9.11)
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "BLE"]
+
+ignore = [
+    # FastAPI's entire dependency-injection design is built on function calls
+    # in default arguments (Depends(), Query(), File(), Form()). B008 flags
+    # every one of them. This is a framework idiom, not a bug.
+    "B008",
+    # Long lines are mostly explanatory comments; not worth churning.
+    "E501",
+    # Optional[X] vs X | None - both are valid; not worth a mass rewrite that
+    # would touch every schema file for zero behavioural gain.
+    "UP045",
+    "UP007",
+]
+
+[lint.per-file-ignores]
+# main.py calls configure_logging() before importing app modules, deliberately:
+# logging handlers must be installed before any module creates its logger.
+# logging_config.py defines the JSON formatter before importing Starlette
+# middleware bases, keeping related code together.
+"app/main.py" = ["E402"]
+"app/core/logging_config.py" = ["E402"]
+# BLE001 (blind except) is intentional in cache.py and metrics.py: a failure
+# in observability or caching must degrade the app, never crash it.
+"app/core/cache.py" = ["BLE001"]
+"app/core/metrics.py" = ["BLE001"]
+"app/services/workflow_service.py" = ["BLE001"]
+# UP042: the app's enums intentionally subclass (str, Enum) rather than StrEnum
+# so they serialise identically on Python 3.10 and 3.11+.
+"app/models/enums.py" = ["UP042"]
+# Test files legitimately redefine fixtures and import for side effects.
+"tests/**" = ["F811", "F401", "BLE001"]
+# Alembic migrations are generated; their import style is not ours to police.
+"alembic/**" = ["I001", "F401"]
+
+[lint.isort]
+known-first-party = ["app", "ml"]

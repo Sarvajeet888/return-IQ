@@ -1,0 +1,66 @@
+# Phase 11 security audit: fastapi 0.115.6 pinned starlette 0.41.3, which has
+# 9 known CVEs (PYSEC-2026-161/248/249/1941/1942/2280/2281). Upgraded and the
+# full 223-test suite verified green on this version.
+fastapi>=0.141.1
+starlette>=1.3.1
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.2.0
+python-dotenv==1.2.2
+python-jose[cryptography]==3.4.0
+bcrypt>=4.0.0
+python-multipart==0.0.32
+python-magic==0.4.27
+
+# Persistence
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg2-binary==2.9.10
+
+# Rate limiting
+slowapi==0.1.9
+redis==5.2.1
+
+# Testing
+pytest>=9.0.3   # PYSEC-2026-1845 (dev-only dependency)
+pytest-cov==6.0.0
+httpx==0.28.1
+
+# ML — XGBoost + pandas + numpy only (no sklearn/scipy needed at runtime)
+xgboost==2.1.3
+pandas==2.2.3
+numpy>=1.26.0
+joblib==1.4.2
+
+# ── Phase 8: Observability ────────────────────────────────────────────────────
+# NOTE: 6.1.0 is NOT compatible with fastapi>=0.140. Newer FastAPI puts
+# _IncludedRouter objects in app.routes, and 6.1.0's middleware assumes every
+# route has a .path attribute - it raises AttributeError on EVERY request.
+# This surfaced only when the app was first built in Docker, because
+# prometheus_client was not installed in the test environment, so the
+# instrumented code path was never executed by the test suite.
+prometheus-fastapi-instrumentator>=8.1.0
+prometheus-client>=0.20.0
+
+# ── Phase 11 security audit: UNRESOLVED transitive vulnerabilities ───────────
+# python-jose depends on ecdsa, which depends on pyasn1<0.5.0. That transitively
+# locks the project to:
+#   pyasn1 0.4.8  - 4 CVEs (PYSEC-2026-2263/3455/3456/3457), fixed in 0.6.4
+#   ecdsa  0.19.2 - PYSEC-2026-1325, NO FIXED VERSION AVAILABLE
+#
+# Pinning pyasn1>=0.6.4 makes dependency resolution impossible - verified.
+# The real remedy is migrating JWT handling from python-jose to PyJWT, which
+# uses `cryptography` for ECDSA rather than the pure-Python `ecdsa` package.
+#
+# Risk assessment: ReturnIQ signs JWTs with HS256 (HMAC-SHA256), which does not
+# exercise the ECDSA code path at all. Exposure is therefore low in the current
+# configuration - but it becomes real the moment anyone switches to an RS/ES
+# algorithm. Tracked as the top open item in phase11/security/DEPENDENCY_AUDIT.md.
+
+# ── Phase 12: market readiness ───────────────────────────────────────────────
+# S3 file storage. Optional at runtime - storage_service falls back to local
+# disk if boto3 is absent or AWS_S3_BUCKET is unset.
+boto3>=1.35.0
+pytest-asyncio>=0.23  # was missing: 3 async cache tests silently never ran
+Pillow>=11.0  # Phase 22: EXIF stripping on evidence images (privacy/DPDP)

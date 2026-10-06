@@ -1,0 +1,9 @@
+{
+    "model_version": "cost_xgb_v1.0.0",
+    "algorithm": "XGBoost",
+    "train_rows": 80000,
+    "test_rows": 20000,
+    "mae": 6.986022676773071,
+    "rmse": 8.7636082597793,
+    "r2": 0.9993070283067123
+}

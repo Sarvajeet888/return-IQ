@@ -1,0 +1,40 @@
+# ── Stage 1: Node builder ─────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install deps first (cache layer — only invalidated when package*.json changes)
+COPY frontend/package*.json ./
+RUN npm ci --frozen-lockfile
+
+# Copy source and build
+COPY frontend/ .
+RUN npm run build
+
+
+# ── Stage 2: Nginx runtime ────────────────────────────────────────────────────
+FROM nginx:1.27-alpine AS runtime
+
+LABEL org.opencontainers.image.title="ReturnIQ Frontend"
+LABEL org.opencontainers.image.description="React UI for ReturnIQ Enterprise"
+LABEL org.opencontainers.image.version="3.0.0"
+
+# Copy built assets from builder
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy production nginx config
+COPY infra/nginx/nginx.prod.conf /etc/nginx/nginx.conf
+COPY infra/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Remove default nginx config
+RUN rm -f /etc/nginx/conf.d/*.conf.bak
+
+# Non-root nginx — nginx:alpine allows running as non-root by changing port
+# to 8080. Requires the production nginx.conf to listen on 8080.
+# We keep port 80 here for simplicity with most cloud reverse proxies.
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget -qO- http://localhost/health-fe || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

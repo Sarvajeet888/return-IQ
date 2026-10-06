@@ -1,0 +1,47 @@
+# Secrets — NEVER copy into an image
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+terraform.tfvars
+
+# Version control
+.git
+.gitignore
+.github
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Node
+node_modules/
+npm-debug.log
+frontend/dist/
+
+# Local dev artifacts
+*.db
+*.sqlite
+*.sqlite3
+backups/
+*.log
+
+# Docs (not needed in runtime image)
+docs/
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

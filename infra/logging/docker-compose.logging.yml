@@ -1,0 +1,38 @@
+# ReturnIQ — Centralized Logging Stack (Phase 8.7)
+# Loki + Promtail: lightweight log aggregation, integrates with Grafana
+#
+# Run alongside the monitoring stack:
+#   docker compose -f docker-compose.prod.yml \
+#                  -f infra/monitoring/docker-compose.monitoring.yml \
+#                  -f infra/logging/docker-compose.logging.yml up -d
+
+version: "3.9"
+
+services:
+
+  loki:
+    image: grafana/loki:2.9.4
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+volumes:
+  loki_data:

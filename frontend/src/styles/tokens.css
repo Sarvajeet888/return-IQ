@@ -1,0 +1,114 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   tokens.css — Kalman design system · single source of truth for colour,
+   surface, border, radius and spacing.
+
+   Concept: a Kalman filter takes a noisy measurement and converges on an
+   estimate. Noise -> signal is the whole visual system.
+
+       raw / unresolved input   -> Iron       (noise)
+       resolved / final output  -> Vermillion (signal)
+
+   Rules enforced here:
+     · Warm only. Bone is warm paper, never grey. Cool greys are banned.
+     · No gradients, no glass, no blue/purple as decoration.
+     · Vermillion is seasoning — CTAs and the resolved state. Never a
+       large fill.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Core palette ──────────────────────────────────────────────────── */
+  --graphite:   #15171B;   /* base — text, dark sections, logo */
+  --bone:       #EDE9E3;   /* surface — page background (warm paper) */
+  --vermillion: #DE4B22;   /* signal — primary CTA, resolved state */
+  --iron:       #6B7078;   /* noise — muted text, the "before" state */
+  --sulphur:    #E3C04A;   /* rare accent — one use per page maximum */
+  --ash:        #C9C3B9;   /* hairlines and borders (warm) */
+
+  /* ── Semantic aliases ──────────────────────────────────────────────── */
+  --brand:        var(--vermillion);
+  --brand-light:  #E86A45;
+  --brand-dark:   #B93A18;
+  --brand-subtle: rgba(222, 75, 34, 0.08);
+  --brand-border: rgba(222, 75, 34, 0.28);
+
+  /* ── Surfaces ──────────────────────────────────────────────────────────
+     Bone is the page. Panels sit *lighter* so they lift without a shadow. */
+  --bg:        var(--bone);
+  --surface:   #F5F2ED;
+  --surface-2: #E7E2DA;
+  --surface-3: #DDD7CD;
+  --inverse:   var(--graphite);   /* dark sections, e.g. status bar */
+  --inverse-2: #1D2026;
+
+  /* ── Borders — hairlines, never shadows ────────────────────────────── */
+  --border:   var(--ash);
+  --border-2: #B5AEA2;
+  --border-3: #9C948A;
+  --hairline: 1px solid var(--border);
+
+  /* ── Text ──────────────────────────────────────────────────────────── */
+  --text-primary:   var(--graphite);
+  --text-secondary: #3D4148;
+  --text-muted:     var(--iron);
+  --text-faint:     #93897C;
+  --text-on-brand:  #FFFFFF;
+  --text-on-dark:   #E5E0D8;
+
+  /* ── Status ────────────────────────────────────────────────────────────
+     Warm-shifted so they sit on Bone rather than fighting it. Vermillion
+     is reserved for "resolved", so status colours stay distinct from it. */
+  --green:         #4A7C46;
+  --green-subtle:  rgba(74, 124, 70, 0.10);
+  --green-border:  rgba(74, 124, 70, 0.30);
+  --red:           #A32E1C;
+  --red-subtle:    rgba(163, 46, 28, 0.09);
+  --red-border:    rgba(163, 46, 28, 0.28);
+  --amber:         #A8842C;   /* Sulphur darkened to a readable text tone */
+  --amber-fill:    var(--sulphur);
+  --amber-subtle:  rgba(227, 192, 74, 0.16);
+  --amber-border:  rgba(227, 192, 74, 0.50);
+  --blue:          #4A6478;   /* informational, muted and warm-leaning */
+  --blue-subtle:   rgba(74, 100, 120, 0.10);
+  --blue-border:   rgba(74, 100, 120, 0.28);
+  --purple:        #6E5A6E;
+  --purple-subtle: rgba(110, 90, 110, 0.10);
+  --purple-border: rgba(110, 90, 110, 0.28);
+
+  /* ── Chart series — noise first, signal last ───────────────────────────
+     series[0] is raw input, the final series is the resolved output. */
+  --chart-noise:  var(--iron);
+  --chart-mid:    #9A958C;
+  --chart-signal: var(--vermillion);
+  --chart-accent: var(--sulphur);
+  --chart-grid:   var(--surface-3);
+
+  /* ── Radius — small and restrained; this is a flat system ──────────── */
+  --r-sm: 3px;
+  --r:    5px;
+  --r-md: 5px;   /* alias kept for existing call sites */
+  --r-lg: 8px;
+  --r-pill: 99px;
+
+  /* ── Spacing — 4px base, named so layouts stay on the grid ────────── */
+  --s1:  4px;
+  --s2:  8px;
+  --s3:  12px;
+  --s4:  16px;
+  --s5:  20px;
+  --s6:  24px;
+  --s7:  32px;
+  --s8:  40px;
+  --s9:  56px;
+  --s10: 80px;
+
+  /* ── Shell geometry ───────────────────────────────────────────────── */
+  --sidebar-w:           232px;
+  --sidebar-w-collapsed: 60px;
+  --topbar-h:            56px;
+  --statusbar-h:         30px;
+  --page-max:            1560px;
+  --z-sidebar:  40;
+  --z-topbar:   50;
+  --z-status:   60;
+  --z-overlay: 150;
+}

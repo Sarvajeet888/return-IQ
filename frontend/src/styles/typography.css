@@ -1,0 +1,115 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   typography.css — Cabinet Grotesk (display) · Switzer (body) · Martian
+   Mono (numerals and machine output).
+
+   Rules:
+     · Headings sentence case. Never Title Case, never ALL CAPS in prose.
+     · Tracking tightens as size grows (-0.01em to -0.03em).
+     · Body never below 13px. Labels never below 11px.
+     · Every figure a user might compare or copy is set in Martian Mono
+       with tabular figures, so columns of money line up.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700,800&f[]=switzer@400,500,600&f[]=martian-mono@400,500&display=swap');
+
+:root {
+  --font-heading: 'Cabinet Grotesk', system-ui, -apple-system, sans-serif;
+  --font-body:    'Switzer', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Martian Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Display scale — used by the landing page and page titles */
+  --t-display: clamp(40px, 6.4vw, 78px);
+  --t-h1:      clamp(28px, 3.4vw, 40px);
+  --t-h2:      clamp(22px, 2.4vw, 30px);
+  --t-h3:      19px;
+  --t-h4:      16px;
+
+  /* Body scale */
+  --t-lead:  17px;
+  --t-body:  15px;
+  --t-sm:    13px;
+  --t-xs:    12px;
+  --t-micro: 11px;
+
+  /* Numerals */
+  --t-metric-lg: clamp(32px, 3.6vw, 46px);
+  --t-metric:    26px;
+  --t-metric-sm: 19px;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  color: var(--text-primary);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--t-h1); letter-spacing: -0.028em; }
+h2 { font-size: var(--t-h2); letter-spacing: -0.024em; }
+h3 { font-size: var(--t-h3); letter-spacing: -0.018em; }
+h4 { font-size: var(--t-h4); letter-spacing: -0.014em; }
+
+p { text-wrap: pretty; }
+
+/* ── Machine type ─────────────────────────────────────────────────────── */
+code, pre, .mono, .tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9em;
+  letter-spacing: -0.02em;
+}
+
+/* Any element showing a figure the user might compare or copy */
+[data-numeric] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+
+/* ── Eyebrow — the small mono label that opens a section ─────────────── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.eyebrow--signal { color: var(--vermillion); }
+
+/* ── Field label ─────────────────────────────────────────────────────── */
+.label {
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+}
+
+/* ── Utility text tones ──────────────────────────────────────────────── */
+.t-muted  { color: var(--text-muted); }
+.t-faint  { color: var(--text-faint); }
+.t-signal { color: var(--vermillion); }
+.t-lead   { font-size: var(--t-lead); line-height: 1.55; color: var(--text-secondary); }
+.t-sm     { font-size: var(--t-sm); }
+.t-xs     { font-size: var(--t-xs); }
+
+input, select, textarea, button {
+  font-family: inherit;
+  font-size: var(--t-sm);
+  letter-spacing: inherit;
+}

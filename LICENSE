@@ -1,0 +1,84 @@
+PROPRIETARY SOFTWARE LICENCE
+
+ReturnIQ Enterprise
+Copyright (c) 2026 Kalman Consultancy Services. All rights reserved.
+
+NOTICE: Kalman Consultancy Services is currently completing company registration
+in India. Upon issuance of the Certificate of Incorporation, this notice should
+be updated to "Kalman Consultancy Services Private Limited" together with the
+Corporate Identification Number (CIN).
+
+1. GRANT OF LICENCE
+
+This software and its accompanying documentation ("the Software") are the
+proprietary property of Kalman Consultancy Services ("the Licensor").
+
+No licence to use, copy, modify, or distribute the Software is granted except
+under a separate written agreement executed with the Licensor.
+
+2. RESTRICTIONS
+
+Without a written licence agreement, you may not:
+  (a) use the Software for any commercial or production purpose;
+  (b) copy, reproduce, or distribute the Software or any part of it;
+  (c) modify, adapt, or create derivative works;
+  (d) reverse engineer, decompile, or disassemble the Software, except to the
+      extent such restriction is prohibited by applicable law;
+  (e) remove or alter any proprietary notices;
+  (f) extract, replicate, or reuse the trained machine learning model artifacts
+      or the preprocessing pipeline.
+
+3. THIRD-PARTY COMPONENTS
+
+The Software incorporates third-party open-source components, each governed by
+its own licence. A complete inventory is provided in
+docs/compliance/LICENSE_AUDIT.md and required attributions in
+docs/compliance/THIRD_PARTY_NOTICES.md.
+
+No GPL or other copyleft-licensed components are included. Nothing in this
+licence restricts your rights under those third-party licences with respect to
+those components.
+
+4. AI AND MACHINE LEARNING DISCLAIMER
+
+The Software produces routing recommendations, risk scores, and cost estimates
+generated in part by a machine learning model and in part by business-rule
+engines.
+
+THESE OUTPUTS ARE RECOMMENDATIONS, NOT DETERMINATIONS. The licensee remains
+solely responsible for all return-handling decisions. The licensee must maintain
+human review for high-value returns and for any case in which a recommendation
+would result in the denial of a customer claim.
+
+The distinction between machine-learned and rule-based components is documented
+in docs/ai/AI_TRANSPARENCY.md and docs/ai/MODEL_CARD.md. Reported model metrics
+are described in those documents as unverified and must not be relied upon as
+performance guarantees.
+
+5. NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, ACCURACY OF PREDICTIONS, AND NONINFRINGEMENT.
+
+6. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE LICENSOR
+BE LIABLE FOR ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR
+FOR ANY LOSS OF PROFITS, REVENUE, DATA, OR BUSINESS OPPORTUNITY, ARISING FROM OR
+RELATED TO THE SOFTWARE.
+
+Nothing in this clause limits liability for death or personal injury caused by
+negligence, or for fraud or fraudulent misrepresentation.
+
+7. GOVERNING LAW
+
+This licence is governed by the laws of India. Disputes shall be subject to the
+jurisdiction of the courts of the state in which the Licensor's registered
+office is situated.
+
+8. CONTACT
+
+Om Pilaji, Director
+Kalman Consultancy Services
+Hyderabad, Telangana, India

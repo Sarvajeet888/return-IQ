@@ -1,0 +1,73 @@
+# ReturnIQ — Monitoring Stack
+# Run alongside the main docker-compose.prod.yml:
+#   docker compose -f docker-compose.prod.yml -f infra/monitoring/docker-compose.monitoring.yml up -d
+
+version: "3.9"
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    # No host port — accessible internally only
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  grafana:
+    image: grafana/grafana:10.3.0
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme}
+      - GF_SERVER_ROOT_URL=https://YOUR_DOMAIN/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"   # Access at http://localhost:3001 (or proxy via nginx)
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER:-returniq}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-returniq}?sslmode=disable
+    restart: unless-stopped
+
+  redis_exporter:
+    image: oliver006/redis_exporter:v1.60.0
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    restart: unless-stopped
+
+  node_exporter:
+    image: prom/node-exporter:v1.7.0
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

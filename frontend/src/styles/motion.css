@@ -1,0 +1,119 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   motion.css — motion should feel calm, precise, premium.
+
+   The governing metaphor: transitions *converge* rather than slide. Things
+   settle into place the way a filter settles onto an estimate. Nothing
+   floats, bounces, or drifts.
+
+   Banned: parallax on content, floating objects, spring overshoot,
+   infinite decorative loops, anything over 900ms.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Easings — all decelerating. Nothing accelerates out of view. */
+  --ease-converge: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-settle:   cubic-bezier(0.16, 1, 0.30, 1);
+  --ease-linear:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  --d-instant: 90ms;
+  --d-fast:    150ms;
+  --d-base:    240ms;
+  --d-slow:    420ms;
+  --d-reveal:  760ms;
+
+  --tr-color:  color var(--d-fast) var(--ease-linear),
+               background-color var(--d-fast) var(--ease-linear),
+               border-color var(--d-fast) var(--ease-linear);
+  --tr-base:   all var(--d-base) var(--ease-converge);
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────────── */
+@keyframes converge {
+  from { opacity: 0; transform: translateY(6px) scale(0.995); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+@keyframes converge-x {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* A noisy line settling onto its estimate — loading and live states */
+@keyframes settle {
+  0%   { transform: translateY(-2px); }
+  25%  { transform: translateY(2px); }
+  50%  { transform: translateY(-1px); }
+  75%  { transform: translateY(0.5px); }
+  100% { transform: translateY(0); }
+}
+
+/* The signal sweep — a single pass, used on live/streaming indicators */
+@keyframes signal-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── Utility classes ──────────────────────────────────────────────────── */
+.animate-in { animation: converge var(--d-base) var(--ease-converge) both; }
+.slide-in   { animation: converge-x var(--d-base) var(--ease-converge) both; }
+.scale-in   { animation: converge var(--d-fast) var(--ease-converge) both; }
+.fade-in    { animation: fade var(--d-slow) var(--ease-linear) both; }
+.settling   { animation: settle 900ms var(--ease-settle) infinite; }
+.pulsing    { animation: pulse-soft 2.2s var(--ease-linear) infinite; }
+
+/* Staggered entry for grids — set --i on the child */
+.stagger > * {
+  animation: converge var(--d-base) var(--ease-converge) both;
+  animation-delay: calc(var(--i, 0) * 34ms);
+}
+
+/* Page transition wrapper — keyed on the route so it replays on navigate */
+.page-enter { animation: converge var(--d-slow) var(--ease-converge) both; }
+
+/* Scroll reveal — driven by IntersectionObserver, not scroll position */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--d-reveal) var(--ease-settle),
+              transform var(--d-reveal) var(--ease-settle);
+  will-change: opacity, transform;
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* ── Skeleton — a flat sweep, not a gradient decoration ───────────────── */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite var(--ease-linear);
+  border-radius: var(--r-sm);
+}
+
+/* ── Hover primitives ─────────────────────────────────────────────────── */
+.hover-lift { transition: transform var(--d-fast) var(--ease-converge),
+                          border-color var(--d-fast) var(--ease-linear); }
+.hover-lift:hover { transform: translateY(-2px); }
+
+.hover-rule { position: relative; }
+.hover-rule::after {
+  content: '';
+  position: absolute; left: 0; bottom: -2px; height: 1px; width: 100%;
+  background: var(--vermillion);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform var(--d-base) var(--ease-converge);
+}
+.hover-rule:hover::after { transform: scaleX(1); }
+
+/* ── Reduced motion — the quality floor ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}

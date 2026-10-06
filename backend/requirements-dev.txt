@@ -1,0 +1,2 @@
+pytest-asyncio>=0.23
+fakeredis>=2.20  # Phase 39: cache wiring tests use real Redis semantics (SCAN/TTL), not a bespoke mock

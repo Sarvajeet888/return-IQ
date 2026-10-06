@@ -1,0 +1,143 @@
+# ReturnIQ Enterprise — Production Docker Compose
+# Usage: docker compose -f docker-compose.prod.yml up -d
+#
+# Differences from docker-compose.yml (dev):
+#   - Uses optimized multi-stage Dockerfiles from infra/docker/
+#   - Backend runs 4 uvicorn workers
+#   - DEMO_MODE=false
+#   - ENVIRONMENT=production
+#   - COOKIE_SECURE=true (requires HTTPS)
+#   - Postgres port NOT exposed to host
+#   - Named volumes with explicit drivers
+#   - Resource limits suitable for a 4-core / 8GB server
+#   - Certbot service for Let's Encrypt TLS
+
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-returniq}
+      POSTGRES_USER: ${POSTGRES_USER:-returniq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/backups/init:/docker-entrypoint-initdb.d:ro
+    # No host port — Postgres must NOT be internet-accessible
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-returniq}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - ENVIRONMENT=production
+      - DEMO_MODE=false
+      - SECRET_KEY=${SECRET_KEY}
+      - API_KEY_HASH_PEPPER=${API_KEY_HASH_PEPPER}
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-returniq}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-returniq}
+      - REDIS_URL=redis://redis:6379/0
+      - USE_REDIS_RATE_LIMIT=true
+      - COOKIE_SECURE=true
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-noreply@returniq.in}
+    volumes:
+      - ./backend/ml/artifacts:/app/ml/artifacts:ro
+      - uploads:/app/uploads
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "3.0"
+          memory: 2G
+        reservations:
+          memory: 512M
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./infra/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    # Run once to issue cert, then exits. Cron renews it (see infra/scripts/renew_ssl.sh)
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  uploads:
+    driver: local
+  certbot_webroot:
+    driver: local

@@ -1,0 +1,58 @@
+# Secrets
+.env
+.env.local
+.env.production
+*.pem
+*.key
+terraform.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups & logs
+backups/
+*.log
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Local development secrets
+backend/.dev_secret_key
+backend/.dev_pepper
+
+# Local ReturnIQ development state
+backend/.dev_secret_key
+backend/.dev_pepper
+backend/returniq_dev.db
+
+# Optional local/raw ML copies (repo ships model.joblib.xz.b64)
+backend/ml/artifacts/model.joblib
+backend/ml/artifacts/preprocessor.joblib
+
+# Duplicate/generated large artifacts
+data/*.xlsx
+ReturnIQ_Engineering_Recap.pdf

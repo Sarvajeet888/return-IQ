@@ -1,0 +1,17 @@
+[
+    "product_value",
+    "actual_weight",
+    "volumetric_weight",
+    "chargeable_weight",
+    "courier",
+    "category",
+    "payment_mode",
+    "return_reason",
+    "pickup_tier",
+    "destination_tier",
+    "distance_km",
+    "fragile",
+    "festive",
+    "customer_return_rate",
+    "merchant_return_rate"
+]

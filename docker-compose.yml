@@ -1,0 +1,112 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-returniq}
+      POSTGRES_USER: ${POSTGRES_USER:-returniq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-returniq_dev_password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Only needed for local psql access from the host - not required for
+    # the backend, which talks to postgres over the compose network.
+    # Remove this port mapping entirely for any real deployment; a managed
+    # Postgres (RDS, Cloud SQL, etc.) is the recommended path anyway per
+    # the deployment guide, and a self-hosted Postgres should never be
+    # directly internet-reachable.
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-returniq}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # No host port mapping here on purpose - only nginx (frontend, below)
+    # should be internet-facing. Backend stays reachable to other compose
+    # services over the internal docker network by service name (backend:8000).
+    # This is required for it to be safe to trust the X-Forwarded-For header
+    # for rate limiting (see backend/app/core/rate_limit.py) - if the
+    # backend were also directly reachable from outside, an attacker could
+    # bypass nginx entirely and forge X-Forwarded-For to defeat per-IP rate
+    # limits. For local debugging, use `docker compose exec backend curl ...`
+    # or temporarily add "8000:8000" back on your own machine.
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DEMO_MODE=true
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      # SECRET_KEY / API_KEY_HASH_PEPPER come from a local .env file (see
+      # .env.example) - never hardcode real values here or commit them.
+      - SECRET_KEY=${SECRET_KEY}
+      - API_KEY_HASH_PEPPER=${API_KEY_HASH_PEPPER}
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-returniq}:${POSTGRES_PASSWORD:-returniq_dev_password}@postgres:5432/${POSTGRES_DB:-returniq}
+      - REDIS_URL=redis://redis:6379/0
+      - USE_REDIS_RATE_LIMIT=true
+      # Local dev over plain HTTP - MUST be true in any real deployment
+      # that serves the app over HTTPS, or the refresh cookie won't be set.
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173}
+    volumes:
+      - ./backend/ml/artifacts:/app/ml/artifacts:ro
+      # Dataset for scripts/load_dataset.py. Read-only, and mounted
+      # rather than copied at runtime because the container runs as a
+      # non-root user (Phase 6) and cannot create /data itself.
+      - ./data:/data:ro
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+volumes:
+  pgdata:

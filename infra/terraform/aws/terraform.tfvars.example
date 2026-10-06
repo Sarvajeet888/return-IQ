@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars and fill in real values
+# NEVER commit terraform.tfvars to git — it contains secrets
+
+aws_region          = "ap-south-1"
+domain              = "app.returniq.in"
+db_password         = "STRONG_DB_PASSWORD_HERE"
+secret_key          = "64_CHAR_HEX_SECRET_KEY_HERE"
+api_key_hash_pepper = "64_CHAR_HEX_PEPPER_HERE"
+backend_image       = "ghcr.io/your-org/returniq-backend:sha-abc1234"
+frontend_image      = "ghcr.io/your-org/returniq-frontend:sha-abc1234"
