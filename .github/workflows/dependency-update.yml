@@ -1,0 +1,44 @@
+# Weekly automated dependency security check
+name: Dependency Security Audit
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"   # Every Monday 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: Audit Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install safety
+        run: pip install safety
+
+      - name: Python vulnerability scan
+        run: |
+          cd backend
+          safety check -r requirements.txt --full-report > safety_report.txt 2>&1 || true
+          cat safety_report.txt
+
+      - name: Node audit
+        run: |
+          cd frontend
+          npm audit --json > npm_audit.json 2>&1 || true
+          npm audit || true
+
+      - name: Upload audit reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-${{ github.run_id }}
+          path: |
+            backend/safety_report.txt
+            frontend/npm_audit.json
+          retention-days: 30
