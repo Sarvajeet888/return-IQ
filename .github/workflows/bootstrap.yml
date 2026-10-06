@@ -1,0 +1,46 @@
+name: Bootstrap ReturnIQ
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: returniq-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Expand ReturnIQ project
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .bootstrap/chunk_00.txt
+          cat .bootstrap/chunk_*.txt > /tmp/returniq_payload.b64
+          base64 -d /tmp/returniq_payload.b64 > /tmp/returniq_payload.tar.xz
+          tar -xJf /tmp/returniq_payload.tar.xz -C .
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+
+          git commit -m "Import ReturnIQ Enterprise project"
+          git push origin HEAD:main
